@@ -1,0 +1,15 @@
+{
+  "name": "sulzer-16zav40s-simulator",
+  "version": "1.0.0",
+  "description": "Sulzer 16ZAV40S Pmax ve Yanma Teshis Simulatoru",
+  "scripts": {
+    "cap:sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

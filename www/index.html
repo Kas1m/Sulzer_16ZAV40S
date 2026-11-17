@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#090e17">
+    <title>Sulzer 16ZAV40S - Pmax ve Yanma Teşhis Simülatörü</title>
+    <style>
+        /* Tamamen Çevrimdışı (Offline) Gömülü Endüstriyel Denizcilik Tasarım Sistemi */
+        :root {
+            --bg-main: #090e17;
+            --bg-card: #131c2e;
+            --bg-sub: #0d1422;
+            --border-color: #26354d;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-cyan: #0ea5e9;
+            --accent-blue: #2563eb;
+            --status-ok: #10b981;
+            --status-ok-bg: rgba(16, 185, 129, 0.14);
+            --status-warn: #f59e0b;
+            --status-warn-bg: rgba(245, 158, 11, 0.14);
+            --status-crit: #ef4444;
+            --status-crit-bg: rgba(239, 68, 68, 0.16);
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.45;
+            padding: 10px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(145deg, #162238 0%, #0d1422 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .brand-tag {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+
+        .header h1 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .specs-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .spec-chip {
+            background: var(--bg-sub);
+            border: 1px solid #334155;
+            padding: 4px 8px;
+            border-radius: 7px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .spec-chip strong {
+            color: #38bdf8;
+        }
+
+        .btn-download-app {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: #ffffff;
+            border: 1px solid #a78bfa;
+            padding: 12px 16px;
+            border-radius: 11px;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+            transition: transform 0.12s, box-shadow 0.15s;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .btn-download-app {
+                width: auto;
+            }
+        }
+
+        .btn-download-app:active {
+            transform: scale(0.97);
+        }
+
+        .scenarios-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .section-micro-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 7px;
+            display: block;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 7px;
+        }
+
+        @media (min-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .btn-scenario {
+            padding: 10px 8px;
+            border-radius: 9px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-sub);
+            color: #f8fafc;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.1s;
+        }
+
+        .btn-scenario:active { transform: scale(0.97); }
+        .btn-scenario.sc-ok { border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7; }
+        .btn-scenario.sc-crit { border-color: rgba(239, 68, 68, 0.55); color: #fca5a5; }
+        .btn-scenario.sc-warn { border-color: rgba(245, 158, 11, 0.55); color: #fcd34d; }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 980px) {
+            .main-layout {
+                grid-template-columns: 1.05fr 0.95fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #e2e8f0;
+        }
+
+        .badge-pill {
+            background: var(--accent-blue);
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 7px;
+        }
+
+        .bank-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 6px 0 5px 0;
+        }
+
+        .cyl-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+        }
+
+        @media (min-width: 560px) {
+            .cyl-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+        }
+
+        .cyl-btn {
+            padding: 9px 4px;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-sub);
+            color: #f8fafc;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.15s;
+        }
+
+        .cyl-pmax-mini {
+            font-size: 10px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .cyl-btn.active .cyl-pmax-mini {
+            color: #e0f2fe;
+        }
+
+        .cyl-btn .status-indicator {
+            width: 22px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--status-ok);
+        }
+
+        .cyl-btn.st-warn .status-indicator { background: var(--status-warn); }
+        .cyl-btn.st-crit .status-indicator { background: var(--status-crit); }
+
+        .cyl-btn.active {
+            border-color: #38bdf8;
+            background: #0c4a6e;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .input-box label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #cbd5e1;
+            margin-bottom: 3px;
+        }
+
+        .input-range {
+            display: block;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 9px;
+            border: 1px solid #475569;
+            background: var(--bg-sub);
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            outline: none;
+        }
+
+        .input-box input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+        }
+
+        .storage-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-ctrl {
+            padding: 12px 10px;
+            border-radius: 9px;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-ctrl:active { transform: scale(0.98); }
+        .btn-save { background: #059669; }
+        .btn-csv { background: #0284c7; }
+        .btn-reset {
+            grid-column: span 2;
+            background: #334155;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .toast-banner {
+            display: none;
+            margin-top: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            background: var(--status-ok-bg);
+            border: 1px solid var(--status-ok);
+            color: #6ee7b7;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .diag-panel {
+            margin-top: 12px;
+            padding: 13px;
+            border-radius: 11px;
+            border-left: 5px solid var(--status-ok);
+            background: var(--status-ok-bg);
+        }
+
+        .diag-panel.warn {
+            border-left-color: var(--status-warn);
+            background: var(--status-warn-bg);
+        }
+
+        .diag-panel.crit {
+            border-left-color: var(--status-crit);
+            background: var(--status-crit-bg);
+        }
+
+        .diag-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .diag-heading {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .diag-badge {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #f8fafc;
+            white-space: nowrap;
+        }
+
+        .diag-text {
+            font-size: 12.5px;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .diag-step {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            background: rgba(9, 14, 23, 0.65);
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            background: #070b12;
+            border: 1px solid #26354d;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .sim-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .btn-sim {
+            flex: 1;
+            min-width: 72px;
+            padding: 9px 6px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: var(--bg-sub);
+            color: #cbd5e1;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-sim.active {
+            background: var(--accent-blue);
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+
+        .legend-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .dot-legend {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .fleet-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: var(--bg-sub);
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            padding: 9px 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 10.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-val {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-top: 2px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--bg-sub);
+            color: #94a3b8;
+            font-weight: 700;
+            padding: 10px 9px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 9px 9px;
+            border-bottom: 1px solid #1e293b;
+            font-family: var(--font-mono);
+        }
+
+        tbody tr { cursor: pointer; }
+        tbody tr:hover { background: rgba(56, 189, 248, 0.08); }
+        tbody tr.row-active { background: rgba(37, 99, 235, 0.25); }
+
+        .st-pill {
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 800;
+            font-family: var(--font-sans);
+        }
+        .st-pill.ok { background: var(--status-ok-bg); color: #6ee7b7; border: 1px solid var(--status-ok); }
+        .st-pill.warn { background: var(--status-warn-bg); color: #fcd34d; border: 1px solid var(--status-warn); }
+        .st-pill.crit { background: var(--status-crit-bg); color: #fca5a5; border: 1px solid var(--status-crit); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-top">
+            <div>
+                <div class="brand-tag">Wärtsilä / Sulzer ZA40S • Çevrimdışı Saha Teşhis Konsolu</div>
+                <h1>SULZER 16ZAV40S PMAX & YANMA TEŞHİS SİMÜLATÖRÜ</h1>
+                <div class="specs-strip">
+                    <span class="spec-chip">Bore: <strong>400mm</strong></span>
+                    <span class="spec-chip">Stroke: <strong>560mm</strong></span>
+                    <span class="spec-chip"><strong>514 RPM</strong></span>
+                    <span class="spec-chip"><strong>Çevrimdışı Mod</strong></span>
+                </div>
+            </div>
+            <button class="btn-download-app" onclick="downloadSelf()">📲 Uygulamayı Cihaza İndir (.html)</button>
+        </div>
+
+        <div class="scenarios-section">
+            <span class="section-micro-label">Hızlı Test Senaryoları (Seçili Silindire Uygular):</span>
+            <div class="scenarios-grid">
+                <button class="btn-scenario sc-ok" onclick="applyScenario('normal')">✅ Normal Çalışma (%85 Yük)</button>
+                <button class="btn-scenario sc-crit" onclick="applyScenario('early')">🔥 Erken Avans / Vuruntu Riski</button>
+                <button class="btn-scenario sc-warn" onclick="applyScenario('late')">⚠️ Geç Yanma / Enjektör Kirlenmesi</button>
+                <button class="btn-scenario sc-crit" onclick="applyScenario('leak')">💨 Kompresyon Kaçağı (Sekman/Subap)</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <div>
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">1. Silindir Seçimi (16 Silindir V-Tipi)</span>
+                    <span id="selectedBadge" class="badge-pill">Seçili: A1</span>
+                </div>
+                <div class="bank-title">A BANKI (A1 – A8)</div>
+                <div id="gridBankA" class="cyl-grid"></div>
+                <div class="bank-title" style="margin-top: 10px;">B BANKI (B1 – B8)</div>
+                <div id="gridBankB" class="cyl-grid"></div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">2. Silindir Ölçüm Giriş Paneli</span>
+                    <span class="input-range" style="margin:0;">Referans Pmax: 138.0 bar</span>
+                </div>
+
+                <div class="inputs-grid">
+                    <div class="input-box">
+                        <label for="inpPmax">Ölçülen Pmax (bar)</label>
+                        <span class="input-range">Ref: 135 – 142 bar</span>
+                        <input type="number" id="inpPmax" step="0.5" inputmode="decimal" oninput="onMeasurementChange()">
+                    </div>
+                    <div class="input-box">
+                        <label for="inpAngle">Pmax Açısı (°aTDC)</label>
+                        <span class="input-range">Ref: 5.0 – 8.0°</span>
+                        <input type="number" id="inpAngle" step="0.1" inputmode="decimal" oninput="onMeasurementChange()">
+                    </div>
+                    <div class="input-box">
+                        <label for="inpPcomp">Sıkıştırma Pcomp (bar)</label>
+                        <span class="input-range">Ref: 102 – 108 bar</span>
+                        <input type="number" id="inpPcomp" step="0.5" inputmode="decimal" oninput="onMeasurementChange()">
+                    </div>
+                    <div class="input-box">
+                        <label for="inpTexh">Egzoz Sıcaklığı (°C)</label>
+                        <span class="input-range">Ref: 390 – 440 °C</span>
+                        <input type="number" id="inpTexh" step="1" inputmode="numeric" oninput="onMeasurementChange()">
+                    </div>
+                </div>
+
+                <div class="storage-actions">
+                    <button class="btn-ctrl btn-save" onclick="saveToStorage()">💾 Hafızaya Kaydet</button>
+                    <button class="btn-ctrl btn-csv" onclick="downloadCSV()">📊 Excel (CSV) İndir</button>
+                    <button class="btn-ctrl btn-reset" onclick="resetStorage()">🔄 Varsayılana Dön</button>
+                </div>
+                <div id="toastBanner" class="toast-banner"></div>
+
+                <div id="diagPanel" class="diag-panel">
+                    <div class="diag-top">
+                        <span id="diagHeading" class="diag-heading">✅ NORMAL ÇALIŞMA</span>
+                        <span id="diagBadge" class="diag-badge">Sapma: 0.0%</span>
+                    </div>
+                    <p id="diagText" class="diag-text"></p>
+                    <div id="diagStep" class="diag-step"></div>
+                </div>
+            </section>
+        </div>
+
+        <div>
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">3. Canlı Silindir Basınç Eğrisi (P - α)</span>
+                    <div class="legend-bar">
+                        <span><i class="dot-legend" style="background:#0ea5e9;"></i>Referans</span>
+                        <span><i class="dot-legend" style="background:#f43f5e;"></i>Seçili Silindir</span>
+                    </div>
+                </div>
+                <canvas id="pressureCanvas" width="480" height="205"></canvas>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">4. Silindir Kinematik & Yanma Animasyonu</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <span id="phaseBadge" class="badge-pill" style="background:#0c4a6e; border:1px solid #38bdf8;">Emme</span>
+                        <span id="crankAngleBadge" class="badge-pill" style="background:#1e293b; border:1px solid #475569;">0° aTDC</span>
+                    </div>
+                </div>
+                <div class="sim-toolbar">
+                    <button id="btnTogglePlay" class="btn-sim active" onclick="toggleAnimation()">⏸ Duraklat</button>
+                    <button id="btnSpd50" class="btn-sim" onclick="changeSpeed(0.008, 'btnSpd50')">1/50x İnceleme</button>
+                    <button id="btnSpd10" class="btn-sim active" onclick="changeSpeed(0.028, 'btnSpd10')">1/10x</button>
+                    <button id="btnSpd1" class="btn-sim" onclick="changeSpeed(0.09, 'btnSpd1')">1x</button>
+                </div>
+                <canvas id="kinematicCanvas" width="480" height="255"></canvas>
+            </section>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="card-header">
+            <span class="card-title">5. 16 Silindir Genel Bakış & Karşılaştırma Tablosu</span>
+            <span class="input-range" style="margin:0;">Satıra dokunarak silindir seçin</span>
+        </div>
+
+        <div class="fleet-stats">
+            <div class="stat-box">
+                <div class="stat-label">Ortalama Pmax</div>
+                <div id="statAvgPmax" class="stat-val">138.0 bar</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Maks. Sapma</div>
+                <div id="statMaxDev" class="stat-val">0.0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Motor Durumu</div>
+                <div id="statFleetStatus" class="stat-val" style="color:#10b981;">16/16 Normal</div>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Silindir</th>
+                        <th>Pmax (bar)</th>
+                        <th>Sapma</th>
+                        <th>Açı (°aTDC)</th>
+                        <th>Pcomp (bar)</th>
+                        <th>Egzoz (°C)</th>
+                        <th>Durum</th>
+                        <th>Olası Kök Neden / Teşhis</th>
+                    </tr>
+                </thead>
+                <tbody id="overviewTbody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        const REF = {
+            pmax: 138.0,
+            angle: 6.5,
+            pcomp: 105.0,
+            texh: 420
+        };
+        const STORAGE_KEY = 'sulzer_16zav40s_offline_sim_v4';
+        const EMBEDDED_INIT_STATE = null;
+
+        function createDefaultState() {
+            const state = {};
+            ['A', 'B'].forEach(bank => {
+                for (let i = 1; i <= 8; i++) {
+                    state[`${bank}${i}`] = {
+                        pmax: REF.pmax,
+                        angle: REF.angle,
+                        pcomp: REF.pcomp,
+                        texh: REF.texh
+                    };
+                }
+            });
+            return state;
+        }
+
+        let cylData = EMBEDDED_INIT_STATE ? JSON.parse(JSON.stringify(EMBEDDED_INIT_STATE)) : createDefaultState();
+
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.A1 && parsed.B8) cylData = parsed;
+            }
+        } catch (e) {
+            console.warn('Yerel hafıza okunamadı.');
+        }
+
+        let currentCyl = 'A1';
+
+        function evaluateCylinder(m) {
+            const devNum = ((m.pmax - REF.pmax) / REF.pmax) * 100;
+            const devStr = (devNum >= 0 ? '+' : '') + devNum.toFixed(1) + '%';
+
+            if (m.pcomp < 98.0) {
+                return {
+                    status: 'crit',
+                    label: 'KRİTİK',
+                    dev: devStr,
+                    absDev: Math.abs(devNum),
+                    cause: 'Segman / Subap Kompresyon Kaçağı',
+                    heading: '🚨 KRİTİK: Kompresyon Kaçağı (Segman / Subap)',
+                    text: `Sıkıştırma basıncı (${m.pcomp.toFixed(1)} bar) minimum limit olan 98 barın altında. Segman aşınması, kırık segman veya egzoz/emme subap oturma yüzeyinde yanma kaçağı mevcut.`,
+                    step: 'Bakım Aksiyonu: Yükü düşürün; endoskop ile silindir gömleği ve segmanları inceleyin, subap boşluklarını kontrol edin.'
+                };
+            }
+
+            if (m.pmax > 146.5 || (m.pmax > 143.0 && m.angle < 4.5)) {
+                return {
+                    status: 'crit',
+                    label: 'KRİTİK',
+                    dev: devStr,
+                    absDev: Math.abs(devNum),
+                    cause: 'Erken Yakıt Püskürtme Avansı / Vuruntu',
+                    heading: '🚨 KRİTİK: Erken Avans ve Aşırı Tepe Basıncı',
+                    text: `Pmax (${m.pmax.toFixed(1)} bar) aşırı yüksek ve yanma ÜÖN'ye çok yakın (${m.angle.toFixed(1)}° aTDC) gerçekleşiyor. Biyel yatakları ve piston kafasında mekanik vuruntu hasarı riski!`,
+                    step: 'Bakım Aksiyonu: Yakıt pompası püskürtme avansını (VIT / kam zamanlaması) geciktirin ve silindir yakıt debisini dengeleyin.'
+                };
+            }
+
+            if (m.pmax < 130.0 && m.angle > 8.5) {
+                return {
+                    status: 'warn',
+                    label: 'UYARI',
+                    dev: devStr,
+                    absDev: Math.abs(devNum),
+                    cause: 'Enjektör Memesi Aşınması / Kirlenmesi',
+                    heading: '⚠️ UYARI: Geç Yanma / Enjektör Atomizasyon Sorunu',
+                    text: `Pmax düşük (${m.pmax.toFixed(1)} bar) ve tepe basınç açısı gecikmiş (${m.angle.toFixed(1)}° aTDC). Enjektör memesi tıkanmış, iğne aşınmış veya püskürtme basıncı düşmüş olabilir.`,
+                    step: 'Bakım Aksiyonu: Enjektörü söküp test tezgahında açılma basıncını ve püskürtme konisini kontrol edin, gerekirse nozul değiştirin.'
+                };
+            }
+
+            if (m.texh > 445) {
+                return {
+                    status: 'warn',
+                    label: 'UYARI',
+                    dev: devStr,
+                    absDev: Math.abs(devNum),
+                    cause: 'Turbo / Hava Soğutucu veya Egzoz Kaçağı',
+                    heading: '⚠️ UYARI: Yüksek Egzoz Sıcaklığı Tespit Edildi',
+                    text: `Egzoz sıcaklığı (${m.texh}°C) normal üst sınır olan 440°C üzerinde. Şarj havası soğutucu (intercooler) kirlenmesi, turbo verim düşüşü veya egzoz subabı kaçağı olabilir.`,
+                    step: 'Bakım Aksiyonu: Hava soğutucu (intercooler) basınç farkını, turbo devrini ve egzoz subap soğutmasını kontrol edin.'
+                };
+            }
+
+            if (m.pmax < 131.0) {
+                return {
+                    status: 'warn',
+                    label: 'UYARI',
+                    dev: devStr,
+                    absDev: Math.abs(devNum),
+                    cause: 'Yakıt Besleme Azlığı / Kremayer Ayarı',
+                    heading: '⚠️ UYARI: Düşük Silindir Tepe Basıncı (Pmax)',
+                    text: `Ölçülen Pmax (${m.pmax.toFixed(1)} bar) normal çalışma aralığının (135–142 bar) altında. Yakıt pompası kremayer (rack) indeksi düşük kalmış olabilir.`,
+                    step: 'Bakım Aksiyonu: Yakıt pompası kremayer indeksini ve yakıt besleme basıncını diğer silindirlerle eşitleyin.'
+                };
+            }
+
+            return {
+                status: 'ok',
+                label: 'NORMAL',
+                dev: devStr,
+                absDev: Math.abs(devNum),
+                cause: 'Normal Çalışma Rejimi',
+                heading: '✅ NORMAL: Optimal Yanma ve Basınç Dengesi',
+                text: `Pmax (${m.pmax.toFixed(1)} bar @ ${m.angle.toFixed(1)}° aTDC), sıkıştırma (${m.pcomp.toFixed(1)} bar) ve egzoz sıcaklığı (${m.texh}°C) Sulzer 16ZAV40S limitleri dahilindedir.`,
+                step: 'Bakım Aksiyonu: Müdahale gerekmez, rutin vardiya takibine devam ediniz.'
+            };
+        }
+
+        function refreshInterface() {
+            const bankAEl = document.getElementById('gridBankA');
+            const bankBEl = document.getElementById('gridBankB');
+            const tbodyEl = document.getElementById('overviewTbody');
+
+            bankAEl.innerHTML = '';
+            bankBEl.innerHTML = '';
+            tbodyEl.innerHTML = '';
+
+            let sumPmax = 0;
+            let maxAbsDev = 0;
+            let normalCount = 0;
+
+            Object.keys(cylData).forEach(id => {
+                const m = cylData[id];
+                const res = evaluateCylinder(m);
+                const isSelected = id === currentCyl;
+
+                sumPmax += m.pmax;
+                if (res.absDev > maxAbsDev) maxAbsDev = res.absDev;
+                if (res.status === 'ok') normalCount++;
+
+                const btn = document.createElement('button');
+                btn.className = `cyl-btn st-${res.status} ${isSelected ? 'active' : ''}`;
+                btn.innerHTML = `<span>${id}</span><span class="cyl-pmax-mini">${m.pmax.toFixed(0)}b</span><span class="status-indicator"></span>`;
+                btn.onclick = () => selectCyl(id);
+
+                if (id.startsWith('A')) bankAEl.appendChild(btn);
+                else bankBEl.appendChild(btn);
+
+                const tr = document.createElement('tr');
+                if (isSelected) tr.className = 'row-active';
+                tr.onclick = () => selectCyl(id);
+
+                tr.innerHTML = `
+                    <td style="font-weight:800; color:#fff;">${id}</td>
+                    <td>${m.pmax.toFixed(1)}</td>
+                    <td>${res.dev}</td>
+                    <td>${m.angle.toFixed(1)}°</td>
+                    <td>${m.pcomp.toFixed(1)}</td>
+                    <td>${m.texh}°</td>
+                    <td><span class="st-pill ${res.status}">${res.label}</span></td>
+                    <td style="font-family:var(--font-sans); color:#cbd5e1;">${res.cause}</td>
+                `;
+                tbodyEl.appendChild(tr);
+            });
+
+            const avgPmax = (sumPmax / 16).toFixed(1);
+            document.getElementById('statAvgPmax').innerText = `${avgPmax} bar`;
+            document.getElementById('statMaxDev').innerText = `${maxAbsDev.toFixed(1)}%`;
+            const fleetEl = document.getElementById('statFleetStatus');
+            fleetEl.innerText = `${normalCount}/16 Normal`;
+            fleetEl.style.color = normalCount === 16 ? '#10b981' : (normalCount >= 13 ? '#f59e0b' : '#ef4444');
+
+            const activeRes = evaluateCylinder(cylData[currentCyl]);
+            const panel = document.getElementById('diagPanel');
+            panel.className = `diag-panel ${activeRes.status === 'ok' ? '' : activeRes.status}`;
+            document.getElementById('diagHeading').innerText = activeRes.heading;
+            document.getElementById('diagBadge').innerText = `Sapma: ${activeRes.dev}`;
+            document.getElementById('diagText').innerText = activeRes.text;
+            document.getElementById('diagStep').innerText = activeRes.step;
+
+            drawPressureCurve();
+        }
+
+        function selectCyl(id) {
+            currentCyl = id;
+            document.getElementById('selectedBadge').innerText = `Seçili: ${id}`;
+            const m = cylData[id];
+            document.getElementById('inpPmax').value = m.pmax;
+            document.getElementById('inpAngle').value = m.angle;
+            document.getElementById('inpPcomp').value = m.pcomp;
+            document.getElementById('inpTexh').value = m.texh;
+            refreshInterface();
+        }
+
+        function onMeasurementChange() {
+            const m = cylData[currentCyl];
+            m.pmax = parseFloat(document.getElementById('inpPmax').value) || 0;
+            m.angle = parseFloat(document.getElementById('inpAngle').value) || 0;
+            m.pcomp = parseFloat(document.getElementById('inpPcomp').value) || 0;
+            m.texh = parseFloat(document.getElementById('inpTexh').value) || 0;
+            refreshInterface();
+        }
+
+        function applyScenario(mode) {
+            if (mode === 'normal') {
+                cylData[currentCyl] = { pmax: 138.0, angle: 6.5, pcomp: 105.0, texh: 420 };
+            } else if (mode === 'early') {
+                cylData[currentCyl] = { pmax: 149.0, angle: 3.6, pcomp: 106.5, texh: 396 };
+            } else if (mode === 'late') {
+                cylData[currentCyl] = { pmax: 124.0, angle: 10.8, pcomp: 104.0, texh: 454 };
+            } else if (mode === 'leak') {
+                cylData[currentCyl] = { pmax: 115.5, angle: 8.2, pcomp: 91.0, texh: 450 };
+            }
+            selectCyl(currentCyl);
+            showNotification(`⚡ ${currentCyl} silindirine test senaryosu yüklendi.`);
+        }
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cylData));
+                showNotification('✅ Tüm 16 silindir ölçümü cihaz hafızasına kaydedildi.');
+            } catch (err) {
+                showNotification('⚠️ Tarayıcı hafıza kaydına izin vermedi.');
+            }
+        }
+
+        function resetStorage() {
+            cylData = createDefaultState();
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            selectCyl(currentCyl);
+            showNotification('🔄 Tüm silindirler fabrika referans değerlerine sıfırlandı.');
+        }
+
+        function showNotification(msg) {
+            const banner = document.getElementById('toastBanner');
+            banner.innerText = msg;
+            banner.style.display = 'block';
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => { banner.style.display = 'none'; }, 3500);
+        }
+
+        function downloadCSV() {
+            let csv = "\uFEFFSilindir;Olculen Pmax (bar);Sapma;Pmax Acisi (aTDC);Pcomp (bar);Egzoz Sicakligi (C);Durum;Olasi Kok Neden;Bakim Aksiyonu\n";
+            Object.keys(cylData).forEach(id => {
+                const m = cylData[id];
+                const res = evaluateCylinder(m);
+                csv += `${id};${m.pmax.toFixed(1)};${res.dev};${m.angle.toFixed(1)};${m.pcomp.toFixed(1)};${m.texh};${res.label};"${res.cause}";"${res.step}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const today = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `Sulzer_16ZAV40S_Rapor_${today}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showNotification('📊 Türkçe Excel (CSV) raporu cihazınıza indirildi.');
+        }
+
+        function downloadSelf() {
+            const clonedDoc = document.documentElement.cloneNode(true);
+            const cleanBankA = clonedDoc.querySelector('#gridBankA');
+            const cleanBankB = clonedDoc.querySelector('#gridBankB');
+            const cleanTbody = clonedDoc.querySelector('#overviewTbody');
+            if (cleanBankA) cleanBankA.innerHTML = '';
+            if (cleanBankB) cleanBankB.innerHTML = '';
+            if (cleanTbody) cleanTbody.innerHTML = '';
+
+            let htmlText = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
+            const serializedState = JSON.stringify(cylData);
+            htmlText = htmlText.replace(
+                /const EMBEDDED_INIT_STATE = [^;]+;/,
+                `const EMBEDDED_INIT_STATE = ${serializedState};`
+            );
+
+            const blob = new Blob([htmlText], { type: 'text/html;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Sulzer_16ZAV40S_Uygulama.html';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showNotification('📲 Uygulama "Sulzer_16ZAV40S_Uygulama.html" olarak indirildi! Chrome ile açıp Ana Ekrana ekleyebilirsiniz.');
+        }
+
+        const pCanvas = document.getElementById('pressureCanvas');
+        const pCtx = pCanvas.getContext('2d');
+
+        function drawPressureCurve() {
+            const w = pCanvas.width;
+            const h = pCanvas.height;
+            pCtx.clearRect(0, 0, w, h);
+
+            const m = cylData[currentCyl];
+            const padL = 40, padR = 14, padT = 16, padB = 24;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            pCtx.strokeStyle = '#1e293b';
+            pCtx.fillStyle = '#64748b';
+            pCtx.font = '10px monospace';
+            pCtx.lineWidth = 1;
+
+            [0, 40, 80, 120, 160].forEach(bar => {
+                const y = padT + plotH - (bar / 165) * plotH;
+                pCtx.beginPath();
+                pCtx.moveTo(padL, y);
+                pCtx.lineTo(w - padR, y);
+                pCtx.stroke();
+                pCtx.fillText(`${bar}`, 8, y + 3);
+            });
+
+            const tdcX = padL + (40 / 100) * plotW;
+            pCtx.strokeStyle = '#475569';
+            pCtx.setLineDash([4, 4]);
+            pCtx.beginPath();
+            pCtx.moveTo(tdcX, padT);
+            pCtx.lineTo(tdcX, padT + plotH);
+            pCtx.stroke();
+            pCtx.setLineDash([]);
+            pCtx.fillText('ÜÖN (0°)', tdcX - 20, h - 7);
+            pCtx.fillText('-40°', padL, h - 7);
+            pCtx.fillText('+60° CA', w - 46, h - 7);
+
+            pCtx.strokeStyle = '#0ea5e9';
+            pCtx.lineWidth = 2;
+            pCtx.beginPath();
+            for (let x = 0; x <= plotW; x += 2) {
+                const ca = (x / plotW) * 100 - 40;
+                const comb = (REF.pmax - REF.pcomp) * Math.exp(-Math.pow((ca - REF.angle) / 7.5, 2)) * (ca > -8 ? 1 : 0);
+                const p = 4 + (REF.pcomp - 4) * Math.exp(-Math.pow(ca / 22, 2)) + comb;
+                const y = padT + plotH - (p / 165) * plotH;
+                if (x === 0) pCtx.moveTo(padL + x, y);
+                else pCtx.lineTo(padL + x, y);
+            }
+            pCtx.stroke();
+
+            pCtx.strokeStyle = '#f43f5e';
+            pCtx.lineWidth = 3;
+            pCtx.beginPath();
+            for (let x = 0; x <= plotW; x += 2) {
+                const ca = (x / plotW) * 100 - 40;
+                const comb = m.pmax > m.pcomp ? (m.pmax - m.pcomp) * Math.exp(-Math.pow((ca - m.angle) / 7.5, 2)) * (ca > -8 ? 1 : 0) : 0;
+                const p = 4 + (m.pcomp - 4) * Math.exp(-Math.pow(ca / 22, 2)) + comb;
+                const y = padT + plotH - (p / 165) * plotH;
+                if (x === 0) pCtx.moveTo(padL + x, y);
+                else pCtx.lineTo(padL + x, y);
+            }
+            pCtx.stroke();
+        }
+
+        const kCanvas = document.getElementById('kinematicCanvas');
+        const kCtx = kCanvas.getContext('2d');
+        let animRunning = true;
+        let animSpeed = 0.028;
+        let crankCycle = 0;
+
+        function toggleAnimation() {
+            animRunning = !animRunning;
+            const btn = document.getElementById('btnTogglePlay');
+            btn.innerText = animRunning ? '⏸ Duraklat' : '▶ Başlat';
+            btn.classList.toggle('active', animRunning);
+        }
+
+        function changeSpeed(spd, btnId) {
+            animSpeed = spd;
+            ['btnSpd50', 'btnSpd10', 'btnSpd1'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById(btnId).classList.add('active');
+        }
+
+        function renderKinematics() {
+            const w = kCanvas.width;
+            const h = kCanvas.height;
+            kCtx.clearRect(0, 0, w, h);
+
+            if (animRunning) {
+                crankCycle = (crankCycle + animSpeed * 60) % 720;
+            }
+
+            let phaseShort = 'Emme';
+            let phaseTitle = '';
+            let phaseColor = '#38bdf8';
+            let intakeOpen = false;
+            let exhaustOpen = false;
+            let sprayActive = false;
+            let flameActive = false;
+
+            if (crankCycle < 180) {
+                phaseShort = 'Emme';
+                phaseTitle = '1. EMME ZAMANI (Şarj Havası Dolumu)';
+                phaseColor = '#38bdf8';
+                intakeOpen = true;
+            } else if (crankCycle < 360) {
+                phaseShort = 'Sıkıştırma';
+                phaseTitle = '2. SIKIŞTIRMA ZAMANI (CR 13.5:1)';
+                phaseColor = '#a78bfa';
+                if (crankCycle > 346) sprayActive = true;
+            } else if (crankCycle < 540) {
+                phaseShort = 'Yanma / Genişleme';
+                phaseTitle = '3. YANMA & GENİŞLEME (Güç Stroku)';
+                phaseColor = '#fb923c';
+                if (crankCycle < 378) sprayActive = true;
+                if (crankCycle < 435) flameActive = true;
+            } else {
+                phaseShort = 'Egzoz';
+                phaseTitle = '4. EGZOZ ZAMANI (Gaz Tahliyesi)';
+                phaseColor = '#f87171';
+                exhaustOpen = true;
+            }
+
+            const degDisplay = Math.round(crankCycle % 360);
+            document.getElementById('phaseBadge').innerText = phaseShort;
+            document.getElementById('crankAngleBadge').innerText = `${degDisplay}° aTDC`;
+
+            const rad = (crankCycle * Math.PI) / 180;
+            const strokeNorm = (1 - Math.cos(rad)) * 0.5;
+
+            const cx = w * 0.36;
+            const linerTop = 50;
+            const linerW = 104;
+            const linerH = 115;
+            const pistonY = linerTop + 12 + strokeNorm * 64;
+
+            kCtx.fillStyle = phaseColor;
+            kCtx.font = 'bold 12px sans-serif';
+            kCtx.fillText(phaseTitle, 14, 22);
+            kCtx.fillStyle = '#94a3b8';
+            kCtx.font = '11px monospace';
+            kCtx.fillText(`Silindir: ${currentCyl} | 514 RPM`, 14, 38);
+
+            kCtx.strokeStyle = '#334155';
+            kCtx.setLineDash([3, 3]);
+            kCtx.beginPath();
+            kCtx.moveTo(cx - linerW / 2 - 22, linerTop + 12);
+            kCtx.lineTo(cx + linerW / 2 + 22, linerTop + 12);
+            kCtx.stroke();
+            kCtx.setLineDash([]);
+            kCtx.fillStyle = '#64748b';
+            kCtx.font = '9px monospace';
+            kCtx.fillText('ÜÖN', cx - linerW / 2 - 24, linerTop + 9);
+
+            kCtx.fillStyle = intakeOpen ? 'rgba(56, 189, 248, 0.25)' : '#1e293b';
+            kCtx.fillRect(cx - linerW / 2 - 26, linerTop - 10, 26, 14);
+            kCtx.fillStyle = exhaustOpen ? 'rgba(248, 113, 113, 0.25)' : '#1e293b';
+            kCtx.fillRect(cx + linerW / 2, linerTop - 10, 26, 14);
+
+            kCtx.strokeStyle = '#64748b';
+            kCtx.lineWidth = 3;
+            kCtx.strokeRect(cx - linerW / 2, linerTop, linerW, linerH);
+
+            kCtx.fillStyle = intakeOpen ? '#38bdf8' : '#475569';
+            kCtx.fillRect(cx - 34, linerTop - (intakeOpen ? -6 : 4), 20, 6);
+            kCtx.fillStyle = exhaustOpen ? '#f87171' : '#475569';
+            kCtx.fillRect(cx + 14, linerTop - (exhaustOpen ? -6 : 4), 20, 6);
+
+            kCtx.fillStyle = '#e2e8f0';
+            kCtx.fillRect(cx - 4, linerTop - 16, 8, 18);
+
+            if (flameActive) {
+                const grad = kCtx.createLinearGradient(0, linerTop, 0, pistonY);
+                grad.addColorStop(0, 'rgba(251, 146, 60, 0.9)');
+                grad.addColorStop(1, 'rgba(239, 68, 68, 0.4)');
+                kCtx.fillStyle = grad;
+                kCtx.fillRect(cx - linerW / 2 + 2, linerTop + 2, linerW - 4, pistonY - linerTop - 2);
+            } else if (intakeOpen) {
+                kCtx.fillStyle = 'rgba(56, 189, 248, 0.16)';
+                kCtx.fillRect(cx - linerW / 2 + 2, linerTop + 2, linerW - 4, pistonY - linerTop - 2);
+            }
+
+            if (sprayActive) {
+                kCtx.fillStyle = 'rgba(253, 224, 71, 0.85)';
+                kCtx.beginPath();
+                kCtx.moveTo(cx, linerTop + 3);
+                kCtx.lineTo(cx - 24, linerTop + 22);
+                kCtx.lineTo(cx + 24, linerTop + 22);
+                kCtx.closePath();
+                kCtx.fill();
+            }
+
+            kCtx.fillStyle = '#94a3b8';
+            kCtx.fillRect(cx - linerW / 2 + 3, pistonY, linerW - 6, 28);
+            kCtx.strokeStyle = '#0f172a';
+            kCtx.lineWidth = 1.5;
+            kCtx.beginPath();
+            kCtx.moveTo(cx - linerW / 2 + 3, pistonY + 6);
+            kCtx.lineTo(cx + linerW / 2 - 3, pistonY + 6);
+            kCtx.moveTo(cx - linerW / 2 + 3, pistonY + 12);
+            kCtx.lineTo(cx + linerW / 2 - 3, pistonY + 12);
+            kCtx.stroke();
+
+            const crankY = 212;
+            const crankR = 23;
+            const pinX = cx + Math.sin(rad) * crankR;
+            const pinY = crankY - Math.cos(rad) * crankR;
+
+            kCtx.strokeStyle = '#cbd5e1';
+            kCtx.lineWidth = 5;
+            kCtx.beginPath();
+            kCtx.moveTo(cx, pistonY + 24);
+            kCtx.lineTo(pinX, pinY);
+            kCtx.stroke();
+
+            kCtx.beginPath();
+            kCtx.arc(cx, crankY, crankR, 0, Math.PI * 2);
+            kCtx.strokeStyle = '#475569';
+            kCtx.lineWidth = 2;
+            kCtx.stroke();
+
+            kCtx.fillStyle = '#38bdf8';
+            kCtx.beginPath();
+            kCtx.arc(pinX, pinY, 4.5, 0, Math.PI * 2);
+            kCtx.fill();
+
+            const m = cylData[currentCyl];
+            const instantP = 4 + (m.pcomp - 4) * Math.pow(1 - strokeNorm, 3.2) + (flameActive ? (m.pmax - m.pcomp) * 0.85 : 0);
+            const gaugeX = w * 0.72;
+            const gaugeW = 96;
+            const gaugeH = 150;
+            const gaugeY = 62;
+
+            kCtx.fillStyle = '#0f172a';
+            kCtx.strokeStyle = '#334155';
+            kCtx.lineWidth = 1.5;
+            kCtx.fillRect(gaugeX, gaugeY, gaugeW, gaugeH);
+            kCtx.strokeRect(gaugeX, gaugeY, gaugeW, gaugeH);
+
+            const fillH = Math.min(gaugeH - 8, (instantP / 165) * (gaugeH - 8));
+            kCtx.fillStyle = flameActive ? '#f97316' : '#0ea5e9';
+            kCtx.fillRect(gaugeX + 4, gaugeY + gaugeH - 4 - fillH, gaugeW - 8, fillH);
+
+            kCtx.fillStyle = '#f8fafc';
+            kCtx.font = 'bold 11px sans-serif';
+            kCtx.fillText('ANLIK BASINÇ', gaugeX + 6, gaugeY - 8);
+            kCtx.font = 'bold 14px monospace';
+            kCtx.fillText(`${Math.round(instantP)} bar`, gaugeX + 14, gaugeY + gaugeH + 18);
+
+            requestAnimationFrame(renderKinematics);
+        }
+
+        window.onload = function() {
+            selectCyl('A1');
+            renderKinematics();
+        };
+    </script>
+</body>
+</html>
